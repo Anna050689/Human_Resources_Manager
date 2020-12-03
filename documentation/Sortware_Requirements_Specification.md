@@ -11,10 +11,13 @@ The application should provide:
 * Storing the information of every employee and the summary information of every department as
 a group of employees;
 * Display the list of departments;
-* Updating the information of each department (adding, editing, removing);
+* Displays the actual information about departments according to the fixed date;
+* Updating the information of each department;
+* Display the total list of employees;
 * Display the list of employees of every department;
 * Updating the information about the employee (adding, editing, and removing);
-* Filtering by the certain birth date or the period between dates for employees;
+* Select the list of employees who have the same birth date;
+* Select the list of employees who were born in the fixed period between dates;
 
 ## 1. Departments
 
@@ -45,7 +48,7 @@ department.
 certain period, the user sets the date filter and presses the refresh button( 
 to the right of the date entry field);
 * The application displays the actual information about departments according 
-to the updated date.
+to the fixed date.
 
 *Restrictions*:
 * Start date of the period should be less than end date of the period;
@@ -101,6 +104,9 @@ In the view form the user can read the data of the department according to fixed
 * *Phone* - phone number of the department;
 * *Count* of employees - total count of employees of the department;
 * *Average salary* - the average salary of employees of the department;
+
+In order to view the list of selected department user presses the button "Employees" in the the bottom
+of the view form.
 
 ## 2. Employees
 
