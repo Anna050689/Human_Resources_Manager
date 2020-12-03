@@ -92,7 +92,7 @@ In the editing form the user can update the data of the department according to 
 
 * User clicks the right icon in the column "Actions" of the department's row;
 * Application displays the information of the department according to the fixed period 
-in the Departments list;
+in *The list of departments* ;
 * In order to return to the the page of *The list of departments* the user presses the button
 "Departments" (in the sidebar to the left of the information page).
 
@@ -135,18 +135,16 @@ The total list of employees includes the following columns:
 information about the employee or to remove the record about the
 employee.
 
-***Filtering by birth date*:
+***Filtering by the birth date***:
 
 * In order to view the list of employees who has the same birth date, the user enters
 the birth date in the corresponding date field "Birth date" and presses the button "Search";
-
 * Application displays the list of employees who have the same birth date;
 
 ![the list of employees who has the same birth date](images/list_filtering_by_birthdate.png)
 
 * In order to view the list of employees who were born in the certain period, the user sets the 
 date filter and presses the button "Search";
-
 * Application displays the list of employees who were born in the certain period; 
 
 ![the list of employees who were born in the certain period](images/list_filtering_by_period.png)
@@ -168,7 +166,7 @@ of the period;
 * If any data is entered incorrectly, an incorrect message is displayed;
 * If entered data is valid, then the updated information will be added to the database;
 * If updated information was successfully added, the user will see the updated information in 
-"Total list of employees".
+*"Total list of employees"*.
 
 *Cancel operation scenario*:
 
@@ -200,8 +198,8 @@ In the editing form the user can update the data of the employee:
 *Main scenario:*
 
 * User clicks the right icon in the column "Actions" of the employee's row;
-* Application displays confirmation message "Please confirm removing the record";
-* The user presses button "Yes" and confirms the removal of the employee;
+* Application displays confirmation message "Please confirm deleting the record";
+* The user presses button "Yes" and confirms the removal of the employee's record;
 * Record is deleted from database;
 * If employee's record is successfully deleted, then total list of employees without 
 deleted records is displaying.
@@ -220,7 +218,6 @@ deleted records is displaying.
 * User enters the last name, patronymic and first name of the employee in the search field (in 
 the right upper corner) and presses Enter;
 * Application displays the record of the employee;
-* If any data is entered incorrectly, an incorrect message is displayed;
 
 ![record_of_the_employee](images/record_of_the_employee.png)
 
@@ -228,11 +225,9 @@ the right upper corner) and presses Enter;
 
 *Main scenario*:
 * User presses the button "Employees";
-* In the page "Total list of employees" user presses the button "Add employee";
+* In the page *"Total list of employees"* user presses the button "Add employee";
 * Application displays the blank form of the employee;
 * User enters the data in text fields and presses the button "Save";
-
-![add the employee](images/add_the_employee.png)
 
 *Cancel operation scenario*:
 
@@ -245,6 +240,22 @@ the right upper corner) and presses Enter;
 * If the user selects the menu item "Departments", "Employees" in the sidebar (to the 
 left of the editing form), the data won't be saved in the database, and the corresponding form
 with added data will be opened.
+
+![add the employee](images/add_the_employee.png)
+
+The form *"Add employee"* includes the following text fields:
+
+* *First Name* - employee's first name;
+* *Patronymic* - employees's patronymic;
+* *Last Name* - employee's last name;
+* *Age* - employee's age;
+* *Birth Date* - employee's birth date;
+* *Phone* - employee's phone;
+* *Position* - employee's position;
+* *Experience* - employee's experience;
+* *Department* - employee's department;
+* *Salary* - employee's salary;
+
 
 
 
