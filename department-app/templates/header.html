@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+
+{% block title %}Manager of Human Resources Department{% endblock %}
+
+{% block body %}
+
+<div class="jumbotron p-3">
+    <div class="well text-container">
+        <h1>Manager of Human Resources Department</h1>
+    </div>
+</div>
+
+<div class="btn-group" role="group" aria-label="Basic example">
+        <a href="/" class="btn btn-secondary">Departments</a>
+        <a href="/employees" class="btn btn-secondary">Employees</a>
+</div>
+    <form action="{{ url_for('search_employee') }}" method="POST">
+<div class="active-pink-3 active-pink-4 mb-4">
+    <button class="btn btn-outline-success float-right" type="submit" style="margin-right: 95px;">Search</button>
+    <input class="form-control" type="text" placeholder="Search employee by last name" name="last_name" aria-label="Search" style="width: 300px; float: right;">
+</div>
+    </form>
+
+{% endblock %}
