@@ -16,12 +16,16 @@ def index():
 
     :return: the rendered template 'index.html'
     """
-    departments = db.session.query(
+    session = db.session
+
+    departments = session.query(
         Department.id, Department.name, Department.manager, Department.phone,
         func.round(func.avg(Employee.salary), 2).label('average_salary'), \
         func.count(Employee.id).label('count_of_employees')).select_from(Department).join(Employee,
                                                                                           isouter=True).group_by(
         Department.id)
+
+    session.close()
     return render_template('index.html', departments=departments)
 
 
@@ -35,7 +39,9 @@ def view_employees():
 
     :return: the rendered template 'view_employees.html'
     """
-    employees = db.session.query(Employee)
+    session = db.session
+    employees = session.query(Employee)
+    session.close()
     return render_template('view_employees.html', employees=employees)
 
 
@@ -48,12 +54,14 @@ def view_employees_filter():
 
     :return: the rendered template 'view_employees.html'
     """
+    session = db.session
     if request.method == 'POST':
         birth_date = request.form.get('birth_date', '')
         if birth_date != '':
-            employees = db.session.query(Employee).filter(Employee.birth_date == birth_date).all()
+            employees = session.query(Employee).filter(Employee.birth_date == birth_date).all()
         else:
-            employees = db.session.query(Employee)
+            employees = session.query(Employee)
+        session.close()
         return render_template('view_employees.html', employees=employees)
 
 
@@ -66,12 +74,15 @@ def view_employees_filter_by_period():
 
     :return: the rendered template 'view_employees.html'
     """
+    session = db.session
+
     if request.method == 'POST':
         born_from = request.form.get('born_from') or '1900-01-01'
         born_to = request.form.get('born_to') or '2100-01-01'
-        employees = db.session.query(Employee).filter(and_(func.date(Employee.birth_date) >= born_from), \
-                                                      func.date(Employee.birth_date) <= born_to).order_by(
-            Employee.birth_date).all()
+        employees = session.query(Employee).filter(and_(func.date(Employee.birth_date) >= born_from), \
+                    func.date(Employee.birth_date) <= born_to).order_by(Employee.birth_date).all()
+
+        session.close()
         return render_template('view_employees.html', employees=employees)
 
 
@@ -117,7 +128,7 @@ def get_department_by_name(session, name):
 
 def extract_employee_data(form, department):
     """
-    Extract data from HTTP form by field name
+    Extract data from HTTP form
 
     :param form: HTTP Form (dictionary)
     :param department: reference to particular Department entity
@@ -137,47 +148,47 @@ def extract_employee_data(form, department):
                     phone, position, experience, department.id, salary)
 
 
-# @app.route('/update/employee', methods=['GET', 'POST'])
-# def update_employee():
-#     """
-#     This function responds to request for /update/employee ,
-#     updates the record of the employee in the database.
-#
-#     :return: the result of the redirect function
-#     """
-#
-#     if request.method == 'POST':
-#         updated_data = Employee.query.get(request.form.get('id'))
-#
-#         try:
-#             updated_data.first_name = request.form['first_name']
-#             updated_data.patronymic = request.form['patronymic']
-#             updated_data.last_name = request.form['last_name']
-#             updated_data.age = request.form['age']
-#             updated_data.birth_date = request.form['birth_date']
-#             updated_data.phone = request.form['phone']
-#             updated_data.position = request.form['position']
-#             updated_data.experience = request.form['experience']
-#             updated_data.salary = request.form['salary']
-#             department_name = request.form['department_name']
-#             updated_data.department_id = \
-#             db.session.query(Department.id).filter(Department.name == department_name).first()[0]
-#         except TypeError:
-#             updated_data.department_id = None
-#             flash("The employee's department is absent. The record's field of the department is empty.")
-#
-#         db.session.commit()
-#         flash("The record of the employee was updated successfully")
-#
-#         return redirect(url_for('view_employees'))
-#     
-
-
-
-@app.route('/delete/employee/<id>', methods=['GET', 'POST'])
-def delete(id):
+@app.route('/update/employee', methods=['GET', 'POST'])
+def update_employee():
     """
-    This function responds to request for /delete/employee/<id>
+    This function responds to request for /update/employee ,
+    updates the record of the employee in the database.
+
+    :return: the result of the redirect function
+    """
+    session = db.session()
+    if request.method == 'POST':
+        department_name = request.form['department_name']
+        updated_data = Employee.query.get(request.form.get('id'))
+
+        try:
+            updated_data.first_name = request.form['first_name']
+            updated_data.patronymic = request.form['patronymic']
+            updated_data.last_name = request.form['last_name']
+            updated_data.age = request.form['age']
+            updated_data.birth_date = request.form['birth_date']
+            updated_data.phone = request.form['phone']
+            updated_data.position = request.form['position']
+            updated_data.experience = request.form['experience']
+            updated_data.salary = request.form['salary']
+            updated_data.department_id = session.query(Department.id).filter(Department.name == department_name).first()[0]
+        except TypeError:
+            updated_data.department_id = None
+            flash("The employee's department is absent. The record's field of the department is empty.")
+
+        session.commit()
+        session.close()
+        flash("The record of the employee was updated successfully")
+
+        return redirect(url_for('view_employees'))
+
+
+
+
+@app.route('/employee/<id>', methods=['GET', 'POST'])
+def delete_employee(id):
+    """
+    This function responds to request for /employee/<id>
     with one matching employee from employees and removes
     the record of the employee in the database.
 
@@ -185,35 +196,55 @@ def delete(id):
 
     :return: the result of redirect function
     """
-    employee = Employee.query.get(id)
-    db.session.delete(employee)
-    db.session.commit()
+    session = db.session()
+
+    employee = extract_employee_by_id(id)
+    session.delete(employee)
+    session.commit()
+    session.close()
     flash("The record of the employee was deleted successfully")
 
     return redirect(url_for('view_employees'))
 
-
-@app.route('/insert/department', methods=['POST'])
-def insert_department():
+def extract_employee_by_id(id):
     """
-    This function responds to request for /insert/department ,
+    Extract data of employee from the data base by id
+    :param id: id of Employee entity
+    :return: Employee entity
+    """
+    employee = Employee.query.get(id)
+    return employee
+
+
+@app.route('/department', methods=['POST'])
+def add_department():
+    """
+    This function responds to request for /department ,
     adds the record of new department to the database.
 
     :return: the result of redirect function
     """
+    session = db.session
+    department = extract_department_data()
+    session.add(department)
+    session.commit()
 
-    if request.method == 'POST':
-        name = request.form['name']
-        manager = request.form['manager']
-        phone = request.form['phone']
+    flash("The record of the department was inserted successfully")
 
-        department = Department(name, manager, phone)
-        db.session.add(department)
-        db.session.commit()
+    return redirect(url_for('index'))
 
-        flash("The record of the department was inserted successfully")
+def extract_department_data():
+    """
+    Extract data from HTTP form
 
-        return redirect(url_for('index'))
+    :return: Department entity
+    """
+    name = request.form['name']
+    manager = request.form['manager']
+    phone = request.form['phone']
+
+    department = Department(name, manager, phone)
+    return department
 
 
 @app.route('/update/department', methods=['GET', 'POST'])
@@ -224,6 +255,8 @@ def update_department():
 
     :return: the result of the redirect function
     """
+    session = db.session
+
     if request.method == 'POST':
         updated_data = Department.query.get(request.form.get('id'))
 
@@ -232,29 +265,43 @@ def update_department():
         updated_data.phone = request.form['phone']
         updated_data.created_on = datetime.now()
 
-        db.session.commit()
+        session.commit()
+        session.close()
         flash("The record of the employee was updated successfully")
 
         return redirect(url_for('index'))
 
 
-@app.route('/delete/department/<id>', methods=['GET', 'POST'])
+@app.route('/department/<id>', methods=['GET', 'POST'])
 def delete_department(id):
     """
-    This function responds to request for /delete/department/<id>
+    This function responds to request for /department/<id>
     with one matching department from departments and removes
     the record of the department in the database.
 
-    :param id: id of the department
+    :param id: id of the employee
+
     :return: the result of redirect function
     """
-    department = Department.query.get(id)
-    db.session.delete(department)
-    db.session.commit()
+    session = db.session()
+
+    department = extract_department_by_id(id)
+    session.delete(department)
+    session.commit()
 
     flash("The record of the department was deleted successfully")
 
     return redirect(url_for('index'))
+
+def extract_department_by_id(id):
+    """
+    Extract data of department from the data base by id
+    :param id: id of Department entity
+    :return: Department entity
+    """
+    department = Department.query.get(id)
+    return department
+
 
 
 @app.route('/search/employee', methods=['POST'])
@@ -268,11 +315,23 @@ def search_employee():
 
     :return: the rendered template('view_employees.html')
     """
-    if request.method == 'POST':
-        last_name = request.form.get('last_name', '')
-        if last_name != '':
-            employees = db.session.query(Employee).filter(Employee.last_name == last_name).all()
-            return render_template('view_employees.html', employees=employees)
-        else:
-            employees = db.session.query(Employee).all()
-            return render_template('view_employees.html', employees=employees)
+    session = db.session
+
+    last_name = extract_last_name()
+    if last_name != '':
+        employees = session.query(Employee).filter(Employee.last_name == last_name).all()
+    else:
+        employees = session.query(Employee).all()
+    session.close()
+    return render_template('view_employees.html', employees=employees)
+
+def extract_last_name():
+    """
+    Extract last_name from HTTP Form
+    :return: str(last_name)
+    """
+    last_name = request.form.get('last_name', '')
+    return last_name
+
+
+
