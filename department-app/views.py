@@ -6,6 +6,7 @@ from sqlalchemy.sql import func, and_
 from datetime import datetime
 
 
+
 @app.route('/')
 def index():
     """
@@ -21,9 +22,8 @@ def index():
     departments = session.query(
         Department.id, Department.name, Department.manager, Department.phone,
         func.round(func.avg(Employee.salary), 2).label('average_salary'), \
-        func.count(Employee.id).label('count_of_employees')).select_from(Department).join(Employee,
-                                                                                          isouter=True).group_by(
-        Department.id)
+        func.count(Employee.id).label('count_of_employees')).select_from(Department). \
+        join(Employee,isouter=True).group_by(Department.id)
 
     session.close()
     return render_template('index.html', departments=departments)

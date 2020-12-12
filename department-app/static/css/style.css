@@ -1,0 +1,16 @@
+.btn-group {
+    margin-bottom: 20px;
+    margin-left: 20px;
+}
+h1, h2 {
+    text-align: center;
+}
+#date-from {
+    width: 400px;
+}
+#date-to {
+    width: 400px;
+}
+#example-search-input {
+    float: right;
+}
