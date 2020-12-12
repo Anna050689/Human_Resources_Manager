@@ -11,7 +11,7 @@ The application should provide:
 * Storing the information of every employee and the summary information of every department as
 a group of employees;
 * Display the list of departments;
-* Displays the actual information about departments according to the fixed date;
+* Displays the actual information about departments;
 * Updating the information of each department;
 * Display the total list of employees;
 * Display the list of employees of every department;

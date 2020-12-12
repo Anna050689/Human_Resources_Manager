@@ -29,7 +29,7 @@ there is displayed information about the average salary, the count of employees.
 * User selects item "Departments" in the sidebar (in the left upper corner);
 * Application displays the list of departments.
 
-![The list of departments](../department-app/static/images/list_of_departments.png)
+![The list of departments](../static/images/list_of_departments.png)
 
 * *Name* - unique name of the department;
 * *Manager* - full name of the manager of the department;
