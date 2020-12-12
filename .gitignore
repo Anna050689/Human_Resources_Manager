@@ -1,4 +1,8 @@
 .idea
-venv/
-.gitignore
+.DS_Store
+/venv
+test.db
 __pycache__/
+test_models.py
+test_views.py
+/tests
