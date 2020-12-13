@@ -17,19 +17,29 @@ def index():
     :return: the rendered template 'index.html'
     """
     session = db.session
-
-    departments = session.query(
-        Department.id, Department.name, Department.manager, Department.phone,
-        func.round(func.avg(Employee.salary), 2).label('average_salary'), \
-        func.count(Employee.id).label('count_of_employees')).select_from(Department).join(Employee,
-                                                                                          isouter=True).group_by(
-        Department.id)
-
+    departments = select_departments()
     session.close()
     return render_template('index.html', departments=departments)
 
 
-@app.route('/employees', methods = ['GET'])
+def select_departments():
+    """
+    Select departments as a list of departments
+    with such parameters as id, name, manager,
+    phone, average salary, count of employees.
+    :return: the list of departments
+    """
+    session = db.session
+    departments = session.query(Department.id, Department.name, Department.manager, \
+                                Department.phone,func.round(func.avg(Employee.salary), 2).label('average_salary'), \
+                                func.count(Employee.id).label('count_of_employees')) \
+                         .select_from(Department).join(Employee,isouter=True) \
+                         .group_by(Department.id)
+    session.close()
+    return departments
+
+
+@app.route('/employees', methods=['GET'])
 def view_employees():
     """
     This function responds to request for /employees ,
@@ -40,9 +50,25 @@ def view_employees():
     :return: the rendered template 'view_employees.html'
     """
     session = db.session
-    employees = session.query(Employee)
+    employees = select_employees()
     session.close()
     return render_template('view_employees.html', employees=employees)
+
+def select_employees():
+    """
+    Select employees as a list of employees with such parameters
+    as id, first_name, patronymic, last_name, age, birth_date,
+    phone, position, experience, department_name, salary.
+    :return: the list of departments
+    """
+    session = db.session
+    employees = session.query(Employee.id, Employee.first_name, Employee.patronymic, Employee.last_name, \
+                              Employee.age, Employee.birth_date, Employee.phone, Employee.position, \
+                              Employee.experience, Department.name.label('department_name'), Employee.salary) \
+                        .select_from(Employee).join(Department).all()
+    session.close()
+    return employees
+
 
 
 @app.route('/employees/filter', methods=['POST'])
@@ -54,15 +80,30 @@ def view_employees_filter():
 
     :return: the rendered template 'view_employees.html'
     """
-    session = db.session
     if request.method == 'POST':
+        session = db.session
         birth_date = request.form.get('birth_date', '')
         if birth_date != '':
-            employees = session.query(Employee).filter(Employee.birth_date == birth_date).all()
+            employees = select_employees_by_filter(birth_date)
         else:
-            employees = session.query(Employee)
+            employees = select_employees()
         session.close()
         return render_template('view_employees.html', employees=employees)
+
+def select_employees_by_filter(birth_date):
+    """
+    Select employees who were born on a certain birth date.
+    :param birth_date: the birth date of the employee
+    :return: the list of employees
+    """
+    session = db.session
+    employees = session.query(Employee.id, Employee.first_name, Employee.patronymic, Employee.last_name, \
+                              Employee.age, Employee.birth_date, Employee.phone, Employee.position, \
+                              Employee.experience, Employee.salary, Department.name.label('department_name')) \
+                        .select_from(Employee).join(Department) \
+                        .filter(Employee.birth_date == birth_date).order_by(Employee.birth_date).all()
+    session.close()
+    return employees
 
 
 @app.route('/employees/filter_by_period', methods=['POST'])
@@ -76,14 +117,28 @@ def view_employees_filter_by_period():
     """
     session = db.session
 
-    if request.method == 'POST':
-        born_from = request.form.get('born_from') or '1900-01-01'
-        born_to = request.form.get('born_to') or '2100-01-01'
-        employees = session.query(Employee).filter(and_(func.date(Employee.birth_date) >= born_from), \
-                    func.date(Employee.birth_date) <= born_to).order_by(Employee.birth_date).all()
+    born_from = request.form.get('born_from') or '1900-01-01'
+    born_to = request.form.get('born_to') or '2100-01-01'
 
-        session.close()
-        return render_template('view_employees.html', employees=employees)
+    employees = select_employee_by_period(born_to, born_from)
+    session.close()
+    return render_template('view_employees.html', employees=employees)
+
+def select_employee_by_period(born_to, born_from):
+    """
+    Select employees who were born in a fixed period.
+    :param born_to: the start date of a fixed period.
+    :param born_from: the end date of a fixed period.
+    :return: the list of employees
+    """
+    session = db.session
+    employees = session.query(Employee.first_name, Employee.patronymic, Employee.last_name, Employee.birth_date, \
+                Employee.age, Employee.phone, Employee.position, Employee.experience, Employee.salary,
+                Department.name.label('department_name')) \
+                .select_from(Employee).join(Department).filter(and_(func.date(Employee.birth_date) >= born_from), \
+                func.date(Employee.birth_date) <= born_to).order_by(Employee.birth_date).all()
+    session.close()
+    return employees
 
 
 @app.route('/employee', methods=['POST'])
@@ -171,7 +226,8 @@ def update_employee():
             updated_data.position = request.form['position']
             updated_data.experience = request.form['experience']
             updated_data.salary = request.form['salary']
-            updated_data.department_id = session.query(Department.id).filter(Department.name == department_name).first()[0]
+            updated_data.department_id = \
+                session.query(Department.id).filter(Department.name == department_name).first()[0]
         except TypeError:
             updated_data.department_id = None
             flash("The employee's department is absent. The record's field of the department is empty.")
@@ -181,8 +237,6 @@ def update_employee():
         flash("The record of the employee was updated successfully")
 
         return redirect(url_for('view_employees'))
-
-
 
 
 @app.route('/employee/<id>', methods=['GET', 'POST'])
@@ -205,6 +259,7 @@ def delete_employee(id):
     flash("The record of the employee was deleted successfully")
 
     return redirect(url_for('view_employees'))
+
 
 def extract_employee_by_id(id):
     """
@@ -232,6 +287,7 @@ def add_department():
     flash("The record of the department was inserted successfully")
 
     return redirect(url_for('index'))
+
 
 def extract_department_data():
     """
@@ -293,6 +349,7 @@ def delete_department(id):
 
     return redirect(url_for('index'))
 
+
 def extract_department_by_id(id):
     """
     Extract data of department from the data base by id
@@ -301,7 +358,6 @@ def extract_department_by_id(id):
     """
     department = Department.query.get(id)
     return department
-
 
 
 @app.route('/search/employee', methods=['POST'])
@@ -319,11 +375,22 @@ def search_employee():
 
     last_name = extract_last_name()
     if last_name != '':
-        employees = session.query(Employee).filter(Employee.last_name == last_name).all()
+        employees = select_employee_by_last_name(last_name)
     else:
-        employees = session.query(Employee).all()
+        employees = select_employees()
     session.close()
     return render_template('view_employees.html', employees=employees)
+
+def select_employee_by_last_name(last_name):
+    session = db.session
+    employees = session.query(Employee.id, Employee.first_name, Employee.patronymic, Employee.last_name, \
+                              Employee.age, Employee.birth_date, Employee.phone, Employee.position, \
+                              Employee.experience, Employee.salary, Department.name.label('department_name')) \
+                        .select_from(Employee).join(Department) \
+                        .filter(Employee.last_name == last_name).order_by(Employee.birth_date).all()
+    session.close()
+    return employees
+
 
 def extract_last_name():
     """
@@ -332,6 +399,3 @@ def extract_last_name():
     """
     last_name = request.form.get('last_name', '')
     return last_name
-
-
-
