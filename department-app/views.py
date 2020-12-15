@@ -65,7 +65,7 @@ def select_employees():
     employees = session.query(Employee.id, Employee.first_name, Employee.patronymic, Employee.last_name, \
                               Employee.age, Employee.birth_date, Employee.phone, Employee.position, \
                               Employee.experience, Department.name.label('department_name'), Employee.salary) \
-                        .select_from(Employee).join(Department).all()
+                        .select_from(Employee).join(Department, isouter=True).all()
     session.close()
     return employees
 
@@ -135,7 +135,7 @@ def select_employee_by_period(born_to, born_from):
     employees = session.query(Employee.first_name, Employee.patronymic, Employee.last_name, Employee.birth_date, \
                 Employee.age, Employee.phone, Employee.position, Employee.experience, Employee.salary,
                 Department.name.label('department_name')) \
-                .select_from(Employee).join(Department).filter(and_(func.date(Employee.birth_date) >= born_from), \
+                .select_from(Employee).join(Department,isouter=True).filter(and_(func.date(Employee.birth_date) >= born_from), \
                 func.date(Employee.birth_date) <= born_to).order_by(Employee.birth_date).all()
     session.close()
     return employees
