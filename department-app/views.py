@@ -226,8 +226,12 @@ def update_employee():
             updated_data.position = request.form['position']
             updated_data.experience = request.form['experience']
             updated_data.salary = request.form['salary']
-            updated_data.department_id = \
-                session.query(Department.id).filter(Department.name == department_name).first()[0]
+            updated_data.department_name = session.query(Department.name) \
+                                                  .select_from(Employee) \
+                                                  .join(Department) \
+                                                  .filter(Department.id == Employee.department_id)
+            updated_data.department_id = session.query(Department.id) \
+                                                .filter(Department.name == department_name).first()[0]
         except TypeError:
             updated_data.department_id = None
             flash("The employee's department is absent. The record's field of the department is empty.")
