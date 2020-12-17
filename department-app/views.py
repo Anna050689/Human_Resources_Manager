@@ -1,9 +1,10 @@
-from app import app
-from app import db
-from models import Department, Employee
 from flask import render_template, request, flash, redirect, url_for, jsonify, g
 from sqlalchemy.sql import func, and_
 from datetime import datetime
+
+from app import app
+from app import db
+from models import Department, Employee
 
 
 @app.route('/')
@@ -30,10 +31,12 @@ def select_departments():
     :return: the list of departments
     """
     session = db.session
-    departments = session.query(Department.id, Department.name, Department.manager, \
-                                Department.phone,func.round(func.avg(Employee.salary), 2).label('average_salary'), \
+    departments = session.query(Department.id, Department.name,
+                                Department.manager, Department.phone,
+                                func.round(func.avg(Employee.salary), 2).label('average_salary'),
                                 func.count(Employee.id).label('count_of_employees')) \
-                         .select_from(Department).join(Employee,isouter=True) \
+                         .select_from(Department) \
+                         .join(Employee,isouter=True) \
                          .group_by(Department.id)
     session.close()
     return departments
@@ -62,10 +65,14 @@ def select_employees():
     :return: the list of departments
     """
     session = db.session
-    employees = session.query(Employee.id, Employee.first_name, Employee.patronymic, Employee.last_name, \
-                              Employee.age, Employee.birth_date, Employee.phone, Employee.position, \
-                              Employee.experience, Department.name.label('department_name'), Employee.salary) \
-                        .select_from(Employee).join(Department, isouter=True).all()
+    employees = session.query(Employee.id, Employee.first_name,
+                              Employee.patronymic, Employee.last_name,
+                              Employee.age, Employee.birth_date,
+                              Employee.phone, Employee.position,
+                              Employee.experience, Employee.salary,
+                              Department.name.label('department_name')) \
+                        .select_from(Employee) \
+                        .join(Department, isouter=True).all()
     session.close()
     return employees
 
@@ -97,11 +104,15 @@ def select_employees_by_filter(birth_date):
     :return: the list of employees
     """
     session = db.session
-    employees = session.query(Employee.id, Employee.first_name, Employee.patronymic, Employee.last_name, \
-                              Employee.age, Employee.birth_date, Employee.phone, Employee.position, \
-                              Employee.experience, Employee.salary, Department.name.label('department_name')) \
-                        .select_from(Employee).join(Department) \
-                        .filter(Employee.birth_date == birth_date).order_by(Employee.birth_date).all()
+    employees = session.query(Employee.id, Employee.first_name,
+                              Employee.patronymic, Employee.last_name,
+                              Employee.age, Employee.birth_date,
+                              Employee.phone, Employee.position,
+                              Employee.experience, Employee.salary,
+                              Department.name.label('department_name')) \
+                        .select_from(Employee).join(Department, isouter=True) \
+                        .filter(Employee.birth_date == birth_date) \
+                        .order_by(Employee.birth_date).all()
     session.close()
     return employees
 
@@ -132,11 +143,15 @@ def select_employee_by_period(born_to, born_from):
     :return: the list of employees
     """
     session = db.session
-    employees = session.query(Employee.first_name, Employee.patronymic, Employee.last_name, Employee.birth_date, \
-                Employee.age, Employee.phone, Employee.position, Employee.experience, Employee.salary,
-                Department.name.label('department_name')) \
-                .select_from(Employee).join(Department,isouter=True).filter(and_(func.date(Employee.birth_date) >= born_from), \
-                func.date(Employee.birth_date) <= born_to).order_by(Employee.birth_date).all()
+    employees = session.query(Employee.first_name, Employee.patronymic,
+                              Employee.last_name, Employee.birth_date,
+                              Employee.age, Employee.phone, Employee.position,
+                              Employee.experience, Employee.salary,
+                              Department.name.label('department_name')) \
+                        .select_from(Employee).join(Department,isouter=True) \
+                        .filter(and_(func.date(Employee.birth_date) >= born_from), \
+                                func.date(Employee.birth_date) <= born_to) \
+                        .order_by(Employee.birth_date).all()
     session.close()
     return employees
 
@@ -161,7 +176,8 @@ def add_employee():
         flash("The record of the employee was inserted successfully")
     except TypeError:
         session.rollback()
-        flash("The employee's department is absent. The record of this employee wasn't inserted.")
+        flash("The employee's department is absent. "
+              "The record of this employee wasn't inserted.")
     finally:
         session.close()
         return redirect(url_for('view_employees'))
@@ -174,7 +190,8 @@ def get_department_by_name(session, name):
     :param name: department name
     :return: Department entity
     """
-    department = session.query(Department).filter(Department.name == name).first()
+    department = session.query(Department) \
+                        .filter(Department.name == name).first()
     if department is not None:
         return department
     else:
@@ -231,10 +248,12 @@ def update_employee():
                                                   .join(Department) \
                                                   .filter(Department.id == Employee.department_id)
             updated_data.department_id = session.query(Department.id) \
-                                                .filter(Department.name == department_name).first()[0]
+                                                .filter(Department.name == department_name) \
+                                                .first()[0]
         except TypeError:
             updated_data.department_id = None
-            flash("The employee's department is absent. The record's field of the department is empty.")
+            flash("The employee's department is absent. "
+                  "The record's field of the department is empty.")
 
         session.commit()
         session.close()
@@ -387,11 +406,13 @@ def search_employee():
 
 def select_employee_by_last_name(last_name):
     session = db.session
-    employees = session.query(Employee.id, Employee.first_name, Employee.patronymic, Employee.last_name, \
-                              Employee.age, Employee.birth_date, Employee.phone, Employee.position, \
-                              Employee.experience, Employee.salary, Department.name.label('department_name')) \
-                        .select_from(Employee).join(Department) \
-                        .filter(Employee.last_name == last_name).order_by(Employee.birth_date).all()
+    employees = session.query(Employee.id, Employee.first_name, Employee.patronymic,
+                              Employee.last_name, Employee.age, Employee.birth_date,
+                              Employee.phone, Employee.position, Employee.experience,
+                              Employee.salary, Department.name.label('department_name')) \
+                        .select_from(Employee).join(Department, isouter=True) \
+                        .filter(Employee.last_name == last_name) \
+                        .order_by(Employee.birth_date).all()
     session.close()
     return employees
 
