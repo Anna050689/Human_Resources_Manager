@@ -171,7 +171,6 @@ def add_employee():
         department = get_department_by_name(session, department_name)
         employee = extract_employee_data(request.form, department)
         session.add(employee)
-        session.commit()
 
         flash("The record of the employee was inserted successfully")
     except TypeError:
@@ -179,6 +178,7 @@ def add_employee():
         flash("The employee's department is absent. "
               "The record of this employee wasn't inserted.")
     finally:
+        session.commit()
         session.close()
         return redirect(url_for('view_employees'))
 
