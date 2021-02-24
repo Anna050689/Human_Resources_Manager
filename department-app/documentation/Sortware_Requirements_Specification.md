@@ -21,7 +21,7 @@ a group of employees;
 
 ### 1.1 Display the list of departments
 
-The mode is designed to view the list of departments. According to every department 
+The model is designed to view the list of departments. According to every department 
 there is displayed information about the average salary, the count of employees.
 
 *Main scenario*:
